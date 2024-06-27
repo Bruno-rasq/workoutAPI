@@ -1,6 +1,7 @@
 from typing import Annotated, Optional, List
 from pydantic import Field, PositiveFloat, BaseModel
 from workoutAPI.contrib.schema import BaseSchema
+from datetime import datetime
 
 
 class AtletaIN(BaseSchema):
@@ -11,9 +12,10 @@ class AtletaIN(BaseSchema):
   peso   : Annotated[PositiveFloat, Field(description='Peso do atleta',   example='75.5')]
   altura : Annotated[PositiveFloat, Field(description='Altura do atleta', example='1.80')]
 
-  
+
 class AtletaOUT(AtletaIN, BaseModel):
-  id : Annotated[int, Field(description='Identificador do Atleta')]
+  id         : Annotated[int, Field(description='Identificador do Atleta')]
+  created_at : Annotated[datetime, Field(description="data de criacao do atleta")]
 
 
 class AtletaUpdate(BaseSchema):

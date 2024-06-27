@@ -13,4 +13,4 @@ class CTOUT(CentroTreinamento):
 
 
 class CTDB(BaseModel):
-  centros : List[CentroTreinamento] 
+  centros : List[CTOUT] 

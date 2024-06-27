@@ -1,8 +1,9 @@
-from fastapi import APIRouter, status, HTTPException
+from fastapi import APIRouter, status, HTTPException, Depends
 from workoutAPI.categorias.schemas import CategoriaIn, CategoriaOut, CategoriasDB
+from sqlalchemy.orm import Session
+from workoutAPI.config.database import get_session
+from workoutAPI.categorias.models import Categorias
 
-
-CATEGORIAS = [] #fake database 
 
 router = APIRouter()
 
@@ -13,10 +14,12 @@ router = APIRouter()
   status_code=status.HTTP_201_CREATED, 
   response_model=CategoriaOut
 )
-def post(categoria: CategoriaIn):
+def post(categoria: CategoriaIn, db: Session = Depends(get_session)):
   '''Criar uma nova Categoria'''
-  nova_categoria = CategoriaOut(id=len(CATEGORIAS) + 1, **categoria.model_dump())
-  CATEGORIAS.append(nova_categoria)
+  nova_categoria = Categorias(nome=categoria.nome)
+  db.add(nova_categoria)
+  db.commit()
+  db.refresh(nova_categoria)
   return nova_categoria
 
 
@@ -26,9 +29,10 @@ def post(categoria: CategoriaIn):
   summary='Consultar todas as categorias', 
   response_model=CategoriasDB
 )
-def get():
+def get(db: Session = Depends(get_session)):
   '''Consultar todos as categorias'''
-  return { "categorias": CATEGORIAS }
+  categorias = db.query(Categorias).all()
+  return { "categorias": categorias }
 
 
 
@@ -37,14 +41,14 @@ def get():
   summary='Consultar categoria pelo id', 
   response_model=CategoriaOut
 )
-def getID(id: int):
+def getID(id: int, db: Session = Depends(get_session)):
   '''Consultar categoria pelo id'''
-  for categoria in CATEGORIAS:
-    if categoria.id == id:
-      return categoria
+  categoria = db.query(Categorias).filter(Categorias.id == id).first()
 
-  raise HTTPException(
-      status_code=status.HTTP_404_NOT_FOUND, 
-      detail=f'Categoria não encontrada no id: {id}'
-  )
-      
+  if categoria is None:
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND, 
+        detail=f'Categoria não encontrada no id: {id}'
+    )
+
+  return categoria
