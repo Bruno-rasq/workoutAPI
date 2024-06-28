@@ -1,13 +1,13 @@
+from sqlalchemy.orm import Session
 from fastapi import APIRouter, status, HTTPException, Depends
+from sqlalchemy import select
+
 from workoutAPI.atletas.schemas import AtletaIN, AtletaOUT, AtletasDB, AtletaUpdate
 from workoutAPI.atletas.models import Atleta
 from workoutAPI.config.database import get_session
-from sqlalchemy.orm import Session
-
 
 
 router = APIRouter()
-
 
 
 @router.post(
@@ -27,9 +27,10 @@ def post(atleta: AtletaIN, db: Session = Depends(get_session)):
 
 
 @router.get("/", summary='Consultar todos os atletas', response_model=AtletasDB)
-def get(db: Session = Depends(get_session)):
+def get(skip: int = 0, limit: int = 3, db: Session = Depends(get_session)):
   '''Consultar lista de atletas'''
-  atletas = db.query(Atleta).all()
+  
+  atletas = db.scalars(select(Atleta).offset(skip).limit(limit)).all()
   return { "atletas": atletas }
 
 
