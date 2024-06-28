@@ -1,6 +1,8 @@
 from fastapi import APIRouter, status, HTTPException, Depends
-from workoutAPI.centro.schemas import CentroTreinamento, CTDB, CTOUT
 from sqlalchemy.orm import Session
+from sqlalchemy import select
+
+from workoutAPI.centro.schemas import CentroTreinamento, CTDB, CTOUT
 from workoutAPI.centro.models import Centro
 from workoutAPI.config.database import get_session
 
@@ -31,7 +33,8 @@ def post(CT: CentroTreinamento, db: Session = Depends(get_session)):
 )
 def get(db: Session = Depends(get_session)):
   '''Consultar todos os Centros de Treinamentos'''
-  centros = db.query(Centro).all()
+  
+  centros = db.scalars(select(Centro)).all()
   return { "centros": centros }
 
 
@@ -43,7 +46,8 @@ def get(db: Session = Depends(get_session)):
 )
 def getID(id: int, db: Session = Depends(get_session)):
   '''Consultar um Centro de Treinamento pelo identificador'''
-  centro = db.query(Centro).filter(Centro.id == id).first()
+  
+  centro = db.scalar(select(Centro).where(Centro.id == id))
 
   if centro is None:
     raise HTTPException(

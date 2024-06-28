@@ -1,6 +1,8 @@
 from fastapi import APIRouter, status, HTTPException, Depends
-from workoutAPI.categorias.schemas import CategoriaIn, CategoriaOut, CategoriasDB
 from sqlalchemy.orm import Session
+from sqlalchemy import select
+
+from workoutAPI.categorias.schemas import CategoriaIn, CategoriaOut, CategoriasDB
 from workoutAPI.config.database import get_session
 from workoutAPI.categorias.models import Categorias
 
@@ -31,7 +33,8 @@ def post(categoria: CategoriaIn, db: Session = Depends(get_session)):
 )
 def get(db: Session = Depends(get_session)):
   '''Consultar todos as categorias'''
-  categorias = db.query(Categorias).all()
+  
+  categorias = db.scalars(select(Categorias)).all()
   return { "categorias": categorias }
 
 
@@ -43,7 +46,8 @@ def get(db: Session = Depends(get_session)):
 )
 def getID(id: int, db: Session = Depends(get_session)):
   '''Consultar categoria pelo id'''
-  categoria = db.query(Categorias).filter(Categorias.id == id).first()
+ 
+  categoria = db.scalar(select(Categorias).where(Categorias.id == id))
 
   if categoria is None:
     raise HTTPException(
