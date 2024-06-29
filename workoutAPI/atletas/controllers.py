@@ -45,32 +45,6 @@ def getID(id: int, db: Session = Depends(get_session)):
 
 
 
-# @router.get("/{nome}", summary="Consultar atleta pelo nome", response_model=AtletaOUT)
-# def getByNome(nome: str, db: Session = Depends(get_session)):
-#   atleta = db.scalar(select(Atleta).where(Atleta.nome == nome))
-
-#   if atleta is None:
-#     raise HTTPException(
-#       status_code=status.HTTP_404_NOT_FOUND, 
-#       detail="atleta não encontrado."
-#     )
-#   return atleta
-  
-
-
-# @router.get("/{cpf}", summary="Consultar atleta pelo cpf", response_model=AtletaOUT)
-# def getByCPF(cpf: str, db: Session = Depends(get_session)):
-#   atleta = db.scalar(select(Atleta).where(Atleta.cpf == cpf))
-
-#   if atleta is None:
-#     raise HTTPException(
-#       status_code=status.HTTP_404_NOT_FOUND, 
-#       detail="atleta não encontrado."
-#     )
-#   return atleta
-
-
-
 @router.patch("/{id}", summary='Atualizar dados do atleta')
 def patch(id: int, update: AtletaUpdate, db: Session = Depends(get_session)):
   
@@ -104,3 +78,15 @@ def delete(id: int, db: Session = Depends(get_session)):
   db.delete(atleta)
   db.commit()
   return None
+
+
+
+@router.get("/{nome}", summary="Consultar atleta pelo nome", response_model=AtletaOUT)
+def getByNome(nome: str, db: Session = Depends(get_session)):
+  ...
+  
+  
+
+@router.get("/{cpf}", summary="Consultar atleta pelo cpf", response_model=AtletaOUT)
+def getByCPF(cpf: str, db: Session = Depends(get_session)):
+  ...
