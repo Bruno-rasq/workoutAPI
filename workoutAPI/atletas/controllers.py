@@ -10,18 +10,36 @@ from workoutAPI.config.database import get_session
 router = APIRouter()
 
 
-@router.post("/", summary='Criar um novo atleta', status_code=status.HTTP_201_CREATED, response_model=AtletaOUT)
+@router.post(
+  "/", 
+  summary='Criar um novo atleta', 
+  status_code=status.HTTP_201_CREATED, 
+  response_model=AtletaOUT
+)
 def post(atleta: AtletaIN, db: Session = Depends(get_session)):
   '''Cadastrar um novo atleta'''
+  atleta_db = db.scalar(select(Atleta).where(Atleta.cpf == atleta.cpf))
+
+  if atleta_db:
+    raise HTTPException(
+      status_code=status.HTTP_400_BAD_REQUEST,
+      detail="atleta com este cpf já cadastrado."
+    )
+    
   novo_atleta = Atleta(**atleta.model_dump())
   db.add(novo_atleta)
   db.commit()
   db.refresh(novo_atleta)
+  
   return novo_atleta
 
 
 
-@router.get("/", summary='Consultar todos os atletas', response_model=AtletasDB)
+@router.get(
+  "/", 
+  summary='Consultar todos os atletas', 
+  response_model=AtletasDB
+)
 def get(skip: int = 0, limit: int = 3, db: Session = Depends(get_session)):
   '''Consultar lista de atletas'''
   
@@ -30,7 +48,11 @@ def get(skip: int = 0, limit: int = 3, db: Session = Depends(get_session)):
 
 
 
-@router.get("/{id}", summary='Consultar atleta pelo id', response_model=AtletaOUT)
+@router.get(
+  "/{id}", 
+  summary='Consultar atleta pelo id', 
+  response_model=AtletaOUT
+)
 def getID(id: int, db: Session = Depends(get_session)):
   '''Consultar um atleta pelo id'''
   
@@ -45,7 +67,10 @@ def getID(id: int, db: Session = Depends(get_session)):
 
 
 
-@router.patch("/{id}", summary='Atualizar dados do atleta')
+@router.patch(
+  "/{id}", 
+  summary='Atualizar dados do atleta'
+)
 def patch(id: int, update: AtletaUpdate, db: Session = Depends(get_session)):
   
   atleta_db = db.scalar(select(Atleta).where(Atleta.id == id))
@@ -60,11 +85,16 @@ def patch(id: int, update: AtletaUpdate, db: Session = Depends(get_session)):
   atleta_db.idade = update.idade
   db.commit()
   db.refresh(atleta_db)
+  
   return atleta_db
 
 
 
-@router.delete("/{id}", summary='Deleter um atleta', status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+  "/{id}", 
+  summary='Deleter um atleta', 
+  status_code=status.HTTP_204_NO_CONTENT
+)
 def delete(id: int, db: Session = Depends(get_session)):
   
   atleta = db.scalar(select(Atleta).where(Atleta.id == id))
@@ -81,12 +111,28 @@ def delete(id: int, db: Session = Depends(get_session)):
 
 
 
-@router.get("/{nome}", summary="Consultar atleta pelo nome", response_model=AtletaOUT)
+@router.get(
+  "/{nome}", 
+  summary="Consultar atleta pelo nome",
+  response_model=AtletaOUT
+)
 def getByNome(nome: str, db: Session = Depends(get_session)):
-  ...
+  atleta = db.scalar(select(Atleta).where(Atleta.nome == nome))
+
+  if atleta:
+    raise HTTPException(
+      status_code=status.HTTP_404_NOT_FOUND,
+      detail="Nenhum atleta com este nome cadastrado"
+    )
+
+  return atleta
   
   
 
-@router.get("/{cpf}", summary="Consultar atleta pelo cpf", response_model=AtletaOUT)
+@router.get(
+  "/{cpf}", 
+  summary="Consultar atleta pelo cpf", 
+  response_model=AtletaOUT
+)
 def getByCPF(cpf: str, db: Session = Depends(get_session)):
   ...

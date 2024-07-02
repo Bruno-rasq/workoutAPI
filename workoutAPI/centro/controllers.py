@@ -18,10 +18,22 @@ router = APIRouter()
 )
 def post(CT: CentroTreinamento, db: Session = Depends(get_session)):
   '''Gravar um novo Centro de Treinamento'''
+
+  ct_db = db.scalar(
+    select(Centro).where(Centro.nome == CT.nome)
+  )
+
+  if ct_db:
+    raise HTTPException(
+      status_code=status.HTTP_400_BAD_REQUEST,
+      detail="Centro já cadastrado."
+    )
+    
   novo_ct = Centro(**CT.model_dump())
   db.add(novo_ct)
   db.commit()
   db.refresh(novo_ct)
+  
   return novo_ct
 
 
