@@ -1,6 +1,7 @@
 from fastapi import APIRouter, status, HTTPException, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+from typing import Annotated
 
 from workoutAPI.categorias.schemas import CategoriaIn, CategoriaOut, CategoriasDB
 from workoutAPI.config.database import get_session
@@ -9,6 +10,8 @@ from workoutAPI.categorias.models import Categorias
 
 router = APIRouter()
 
+BDSESSION = Annotated[Session, Depends(get_session)]
+
 
 @router.post(
   "/", 
@@ -16,7 +19,7 @@ router = APIRouter()
   status_code=status.HTTP_201_CREATED, 
   response_model=CategoriaOut
 )
-def post(categoria: CategoriaIn, db: Session = Depends(get_session)):
+def post(categoria: CategoriaIn, db: BDSESSION):
   '''Criar uma nova Categoria'''
 
   categoria_db = db.scalar(select(Categorias).where(Categorias.nome == categoria.nome))
@@ -41,7 +44,7 @@ def post(categoria: CategoriaIn, db: Session = Depends(get_session)):
   summary='Consultar todas as categorias', 
   response_model=CategoriasDB
 )
-def get(db: Session = Depends(get_session)):
+def get(db: BDSESSION):
   '''Consultar todos as categorias'''
   
   categorias = db.scalars(select(Categorias)).all()
@@ -54,7 +57,7 @@ def get(db: Session = Depends(get_session)):
   summary='Consultar categoria pelo id', 
   response_model=CategoriaOut
 )
-def getID(id: int, db: Session = Depends(get_session)):
+def getID(id: int, db: BDSESSION):
   '''Consultar categoria pelo id'''
  
   categoria = db.scalar(select(Categorias).where(Categorias.id == id))

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, status, HTTPException, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+from typing import Annotated
 
 from workoutAPI.atletas.schemas import AtletaIN, AtletaOUT, AtletasDB, AtletaUpdate
 from workoutAPI.atletas.models import Atleta
@@ -9,6 +10,8 @@ from workoutAPI.config.database import get_session
 
 router = APIRouter()
 
+BDSESSION = Annotated[Session, Depends(get_session)]
+
 
 @router.post(
   "/", 
@@ -16,8 +19,9 @@ router = APIRouter()
   status_code=status.HTTP_201_CREATED, 
   response_model=AtletaOUT
 )
-def post(atleta: AtletaIN, db: Session = Depends(get_session)):
+def post(atleta: AtletaIN, db: BDSESSION):
   '''Cadastrar um novo atleta'''
+  
   atleta_db = db.scalar(select(Atleta).where(Atleta.cpf == atleta.cpf))
 
   if atleta_db:
@@ -40,7 +44,7 @@ def post(atleta: AtletaIN, db: Session = Depends(get_session)):
   summary='Consultar todos os atletas', 
   response_model=AtletasDB
 )
-def get(skip: int = 0, limit: int = 3, db: Session = Depends(get_session)):
+def get(db: BDSESSION, skip: int = 0, limit: int = 3):
   '''Consultar lista de atletas'''
   
   atletas = db.scalars(select(Atleta).offset(skip).limit(limit)).all()
@@ -53,7 +57,7 @@ def get(skip: int = 0, limit: int = 3, db: Session = Depends(get_session)):
   summary='Consultar atleta pelo id', 
   response_model=AtletaOUT
 )
-def getID(id: int, db: Session = Depends(get_session)):
+def getID(id: int, db: BDSESSION):
   '''Consultar um atleta pelo id'''
   
   atleta = db.scalar(select(Atleta).where(Atleta.id == id))
@@ -71,7 +75,8 @@ def getID(id: int, db: Session = Depends(get_session)):
   "/{id}", 
   summary='Atualizar dados do atleta'
 )
-def patch(id: int, update: AtletaUpdate, db: Session = Depends(get_session)):
+def patch(id: int, update: AtletaUpdate, db: BDSESSION):
+  '''Atualizar campos de nome e idade'''
   
   atleta_db = db.scalar(select(Atleta).where(Atleta.id == id))
 
@@ -95,7 +100,8 @@ def patch(id: int, update: AtletaUpdate, db: Session = Depends(get_session)):
   summary='Deleter um atleta', 
   status_code=status.HTTP_204_NO_CONTENT
 )
-def delete(id: int, db: Session = Depends(get_session)):
+def delete(id: int, db: BDSESSION):
+  '''Deletar um Atleta pelo seu identificador'''
   
   atleta = db.scalar(select(Atleta).where(Atleta.id == id))
 
@@ -116,7 +122,7 @@ def delete(id: int, db: Session = Depends(get_session)):
   summary="Consultar atleta pelo nome",
   response_model=AtletaOUT
 )
-def getByNome(nome: str, db: Session = Depends(get_session)):
+def getByNome(nome: str, db: BDSESSION):
   atleta = db.scalar(select(Atleta).where(Atleta.nome == nome))
 
   if atleta:
@@ -134,5 +140,5 @@ def getByNome(nome: str, db: Session = Depends(get_session)):
   summary="Consultar atleta pelo cpf", 
   response_model=AtletaOUT
 )
-def getByCPF(cpf: str, db: Session = Depends(get_session)):
+def getByCPF(cpf: str, db: BDSESSION):
   ...

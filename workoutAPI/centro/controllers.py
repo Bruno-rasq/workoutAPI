@@ -1,6 +1,7 @@
 from fastapi import APIRouter, status, HTTPException, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+from typing import Annotated
 
 from workoutAPI.centro.schemas import CentroTreinamento, CTDB, CTOUT
 from workoutAPI.centro.models import Centro
@@ -9,6 +10,8 @@ from workoutAPI.config.database import get_session
 
 router = APIRouter()
 
+BDSESSION = Annotated[Session, Depends(get_session)]
+
 
 @router.post(
   "/", 
@@ -16,7 +19,7 @@ router = APIRouter()
   status_code=status.HTTP_201_CREATED,
   response_model=CTOUT
 )
-def post(CT: CentroTreinamento, db: Session = Depends(get_session)):
+def post(CT: CentroTreinamento, db: BDSESSION):
   '''Gravar um novo Centro de Treinamento'''
 
   ct_db = db.scalar(
@@ -43,7 +46,7 @@ def post(CT: CentroTreinamento, db: Session = Depends(get_session)):
   summary='Consultar todos os centros de treinamento',
   response_model=CTDB
 )
-def get(db: Session = Depends(get_session)):
+def get(db: BDSESSION):
   '''Consultar todos os Centros de Treinamentos'''
   
   centros = db.scalars(select(Centro)).all()
@@ -56,7 +59,7 @@ def get(db: Session = Depends(get_session)):
   summary='Consultar um centro de treinamento pelo id',
   response_model=CTOUT
 )
-def getID(id: int, db: Session = Depends(get_session)):
+def getID(id: int, db: BDSESSION):
   '''Consultar um Centro de Treinamento pelo identificador'''
   
   centro = db.scalar(select(Centro).where(Centro.id == id))
